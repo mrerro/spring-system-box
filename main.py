@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtChart
+from scipy.integrate import *
+import numpy as np
 
 
 class Ui_Form(object):
@@ -59,6 +61,11 @@ class Ui_Form(object):
 
         self.timer = QtCore.QTimer()
         self.timer.setInterval(500)
+
+        self.runge_kutta = ode(self.f)
+        self.runge_kutta.set_integrator('dopri5')
+        self.runge_kutta.set_initial_value([0, 0, 0, 0], 0)
+
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(800, 600)
@@ -238,7 +245,117 @@ class Ui_Form(object):
         self.label_24.setText(_translate("Form", "H="))
         self.label_25.setText(_translate("Form", "см"))
 
-    # def
+    def on_timer_tick(self):
+        print(self.timer.interval())
+
+    def on_W_editing_finished(self):
+        self.chart.axisX().setRange(-self.W.value() - 25, self.W.value() + 25)
+
+    def on_H_editing_finished(self):
+        self.chart.axisY().setRange(-self.H.value() - 25, self.H.value() + 25)
+
+    def on_dX_editing_finished(self):
+        if abs(self.dX.value()) > self.W.value() / 2:
+            temp = self.dX.value() / abs(self.dX.value()) * self.W.value() / 2
+            self.dX.setValue(temp)
+
+    def on_dY_editing_finished(self):
+        if abs(self.dY.value()) > self.H.value() / 2:
+            temp = self.dY.value() / abs(self.dY.value()) * self.H.value() / 2
+            self.dY.setValue(temp)
+
+    def on_start_clicked(self):
+        if not self.btn_pause.isEnabled():
+            self.runge_kutta.set_initial_value([0, 0, 0, 0], 0)
+        self.set_disabled_splin_boxes(True)
+        self.timer.start()
+        self.btn_start.setDisabled(True)
+        self.btn_pause.setText("Пауза")
+        self.btn_pause.setDisabled(False)
+
+    def on_pause_clicked(self):
+        if self.timer.isActive():
+            self.timer.stop()
+            self.btn_start.setDisabled(False)
+            self.btn_pause.setText("Стоп")
+        else:
+            self.btn_pause.setDisabled(True)
+            self.btn_start.setDisabled(False)
+            self.btn_pause.setText("Пауза")
+            self.set_disabled_splin_boxes(False)
+            # seriesYX.clear()
+            # seriesZXY.clear()
+
+    def set_disabled_splin_boxes(self, value):
+        self.k1.setDisabled(value)
+        self.k2.setDisabled(value)
+        self.k3.setDisabled(value)
+        self.k4.setDisabled(value)
+        self.m.setDisabled(value)
+        self.M.setDisabled(value)
+        self.mu.setDisabled(value)
+        self.dX.setDisabled(value)
+        self.dY.setDisabled(value)
+        self.H.setDisabled(value)
+        self.W.setDisabled(value)
+
+    # система уравнений
+    def f(self, t, Y):
+        def f1x():
+            return self.k1.value() * (Y[0] - Y[2]) * (
+                    self.H.value() / np.sqrt(np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
+
+        def f2x():
+            return -1 * self.k2.value() * (Y[2] - Y[0] + self.W.value()) * (
+                    self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        def f3x():
+            return -1 * self.k3.value() * (Y[0] - Y[2]) * (1 - self.H.value() / np.sqrt(
+                np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
+
+        def f4x():
+            return -1 * self.k4.value() * (Y[2] - Y[0] + self.W.value()) * (1 - self.W.value() / np.sqrt(
+                np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        def fy1():
+            return -1 * self.k1.value() * (Y[3] - Y[1] + self.H.value()) * (self.H.value() / np.sqrt(
+                np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
+
+        def fy2():
+            return self.k2.value() * (Y[1] - Y[3]) * (
+                    self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        def fy3():
+            return -1 * self.k3.value() * (Y[1] - Y[3] + self.H.value()) * (1 - self.H.value() / np.sqrt(
+                np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
+
+        def fy4():
+            return -1 * self.k4.value() * (Y[1] - Y[3]) * (1 - self.W.value() / np.sqrt(
+                np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        def ftr(fx):
+            f = self.mu.value() * (self.m.value() + self.M.value()) * 9.81
+            max_value = abs(fx)
+            if f > max_value:
+                return -max_value
+            return -f
+
+        fx = f1x() + f2x() + f3x() + f4x()
+        fy = fy1() + fy2() + fy3() + fy4()
+
+        vvx = .0
+        vvy = .0
+
+        if Y[6] != 0 or Y[7] != 0:
+            vvx = Y[6] / np.sqrt(Y[6] * Y[6] + Y[7] * Y[7])
+            vvy = Y[7] / np.sqrt(Y[6] * Y[6] + Y[7] * Y[7])
+
+        ftr_x = ftr(fx) * vvx
+        ftr_y = ftr(fy) * vvy
+
+        return [Y[4], Y[5], Y[6], Y[7], fx / self.m.value(), fx / self.m.value(), (-fx + ftr_x) / self.M.value(),
+                (-fy + ftr_y) / self.M.value()]
+
 
 if __name__ == "__main__":
     import sys
