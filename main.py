@@ -218,6 +218,16 @@ class Ui_Form(object):
         Form.setTabOrder(self.W, self.btn_start)
         Form.setTabOrder(self.btn_start, self.btn_pause)
 
+        self.W.editingFinished.connect(self.on_W_editing_finished)
+        self.H.editingFinished.connect(self.on_H_editing_finished)
+        self.timer.timeout.connect(self.on_timer_tick)
+        self.dX.editingFinished.connect(self.on_dX_editing_finished)
+        self.dY.editingFinished.connect(self.on_dY_editing_finished)
+        self.btn_start.released.connect(self.on_start_clicked)
+        self.btn_pause.released.connect(self.on_pause_clicked)
+
+        self.on_W_editing_finished()
+        self.on_H_editing_finished()
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
