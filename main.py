@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'form.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.1
-#
-# WARNING! All changes made in this file will be lost!
-
 from PyQt5 import QtCore, QtGui, QtWidgets, QtChart
 
 
@@ -231,7 +225,7 @@ class Ui_Form(object):
         self.label_24.setText(_translate("Form", "H="))
         self.label_25.setText(_translate("Form", "см"))
 
-    def 
+    # def
 
 if __name__ == "__main__":
     import sys
