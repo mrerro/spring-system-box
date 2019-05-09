@@ -56,6 +56,9 @@ class Ui_Form(object):
         self.s2_series = QtChart.QLineSeries()
         self.s3_series = QtChart.QLineSeries()
         self.s4_series = QtChart.QLineSeries()
+
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(500)
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(800, 600)
