@@ -36,16 +36,26 @@ class Ui_Form(object):
         self.label_7 = QtWidgets.QLabel(Form)
         self.label_6 = QtWidgets.QLabel(Form)
         self.label_5 = QtWidgets.QLabel(Form)
-        self.chartView = QtChart.QChartView(Form)
         self.k1 = QtWidgets.QDoubleSpinBox(Form)
         self.label_4 = QtWidgets.QLabel(Form)
         self.btn_pause = QtWidgets.QPushButton(Form)
         self.btn_start = QtWidgets.QPushButton(Form)
 
+        self.chartView = QtChart.QChartView(Form)
+        self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
+
         self.chart = self.chartView.chart()
+        self.chart.legend().setVisible(False)
         self.axisX = QtChart.QValueAxis()
         self.axisY = QtChart.QValueAxis()
 
+        self.mass_series = QtChart.QScatterSeries()
+        self.traj_series = QtChart.QLineSeries()
+        self.box_series = QtChart.QLineSeries()
+        self.s1_series = QtChart.QLineSeries()
+        self.s2_series = QtChart.QLineSeries()
+        self.s3_series = QtChart.QLineSeries()
+        self.s4_series = QtChart.QLineSeries()
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(800, 600)
