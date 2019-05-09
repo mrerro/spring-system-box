@@ -228,6 +228,37 @@ class Ui_Form(object):
 
         self.on_W_editing_finished()
         self.on_H_editing_finished()
+
+        self.chart.addSeries(self.mass_series)
+        self.mass_series.attachAxis(self.axisX)
+        self.mass_series.attachAxis(self.axisY)
+        self.mass_series.setMarkerShape(QtChart.QScatterSeries.MarkerShapeRectangle)
+        self.mass_series.setMarkerSize(10)
+
+        self.chart.addSeries(self.traj_series)
+        self.traj_series.attachAxis(self.axisX)
+        self.traj_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.box_series)
+        self.box_series.attachAxis(self.axisX)
+        self.box_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.s1_series)
+        self.s1_series.attachAxis(self.axisX)
+        self.s1_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.s2_series)
+        self.s2_series.attachAxis(self.axisX)
+        self.s2_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.s3_series)
+        self.s3_series.attachAxis(self.axisX)
+        self.s3_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.s4_series)
+        self.s4_series.attachAxis(self.axisX)
+        self.s4_series.attachAxis(self.axisY)
+
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
