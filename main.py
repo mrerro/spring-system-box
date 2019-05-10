@@ -52,7 +52,7 @@ class Ui_Form(object):
         self.axisY = QtChart.QValueAxis()
 
         self.mass_series = QtChart.QScatterSeries()
-        self.traj_series = QtChart.QLineSeries()
+        self.trajectory_series = QtChart.QLineSeries()
         self.box_series = QtChart.QLineSeries()
         self.s1_series = QtChart.QLineSeries()
         self.s2_series = QtChart.QLineSeries()
@@ -60,11 +60,11 @@ class Ui_Form(object):
         self.s4_series = QtChart.QLineSeries()
 
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(500)
+        self.timer.setInterval(10)
+        self.total_time = .0
 
         self.runge_kutta = ode(self.f)
         self.runge_kutta.set_integrator('dopri5')
-        self.runge_kutta.set_initial_value([0, 0, 0, 0], 0)
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
@@ -229,20 +229,6 @@ class Ui_Form(object):
         self.on_W_editing_finished()
         self.on_H_editing_finished()
 
-        self.chart.addSeries(self.mass_series)
-        self.mass_series.attachAxis(self.axisX)
-        self.mass_series.attachAxis(self.axisY)
-        self.mass_series.setMarkerShape(QtChart.QScatterSeries.MarkerShapeRectangle)
-        self.mass_series.setMarkerSize(10)
-
-        self.chart.addSeries(self.traj_series)
-        self.traj_series.attachAxis(self.axisX)
-        self.traj_series.attachAxis(self.axisY)
-
-        self.chart.addSeries(self.box_series)
-        self.box_series.attachAxis(self.axisX)
-        self.box_series.attachAxis(self.axisY)
-
         self.chart.addSeries(self.s1_series)
         self.s1_series.attachAxis(self.axisX)
         self.s1_series.attachAxis(self.axisY)
@@ -258,6 +244,24 @@ class Ui_Form(object):
         self.chart.addSeries(self.s4_series)
         self.s4_series.attachAxis(self.axisX)
         self.s4_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.trajectory_series)
+        self.trajectory_series.attachAxis(self.axisX)
+        self.trajectory_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.box_series)
+        self.box_series.attachAxis(self.axisX)
+        self.box_series.attachAxis(self.axisY)
+
+        self.chart.addSeries(self.mass_series)
+        self.mass_series.attachAxis(self.axisX)
+        self.mass_series.attachAxis(self.axisY)
+        self.mass_series.setMarkerShape(QtChart.QScatterSeries.MarkerShapeRectangle)
+        self.mass_series.setMarkerSize(10)
+
+        self.btn_pause.setDisabled(True)
+
+        self.redraw(self.dX.value(), self.dY.value(), 0, 0)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
@@ -286,28 +290,65 @@ class Ui_Form(object):
         self.label_24.setText(_translate("Form", "H="))
         self.label_25.setText(_translate("Form", "см"))
 
+    def redraw(self, x, y, xb, yb):
+        self.trajectory_series.append(xb, yb)
+
+        self.mass_series.clear()
+        self.mass_series.append(x, y)
+
+        self.box_series.clear()
+        h = self.H.value() / 2
+        w = self.W.value() / 2
+        self.box_series.append(xb + w, yb + h)
+        self.box_series.append(xb + w, yb - h)
+        self.box_series.append(xb - w, yb - h)
+        self.box_series.append(xb - w, yb + h)
+        self.box_series.append(xb + w, yb + h)
+
+        self.s1_series.clear()
+        self.s1_series.append(x, y)
+        self.s1_series.append(xb, yb + h)
+
+        self.s2_series.clear()
+        self.s2_series.append(x, y)
+        self.s2_series.append(xb + w, yb)
+
+        self.s3_series.clear()
+        self.s3_series.append(x, y)
+        self.s3_series.append(xb, yb - h)
+
+        self.s4_series.clear()
+        self.s4_series.append(x, y)
+        self.s4_series.append(xb - w, yb)
+
     def on_timer_tick(self):
-        print(self.timer.interval())
+        self.runge_kutta.integrate(self.total_time)
+        self.total_time += 0.1
+        self.redraw(self.runge_kutta.f[0], self.runge_kutta.y[1], self.runge_kutta.y[2], self.runge_kutta.y[3])
 
     def on_W_editing_finished(self):
         self.chart.axisX().setRange(-self.W.value() - 25, self.W.value() + 25)
+        self.on_dX_editing_finished()
 
     def on_H_editing_finished(self):
         self.chart.axisY().setRange(-self.H.value() - 25, self.H.value() + 25)
+        self.on_dY_editing_finished()
 
     def on_dX_editing_finished(self):
-        if abs(self.dX.value()) > self.W.value() / 2:
-            temp = self.dX.value() / abs(self.dX.value()) * self.W.value() / 2
+        if abs(self.dX.value()) > self.W.value() / 2 - 1:
+            temp = self.dX.value() / abs(self.dX.value()) * self.W.value() / 2 - 1
             self.dX.setValue(temp)
+        self.redraw(self.dX.value(), self.dY.value(), 0, 0)
 
     def on_dY_editing_finished(self):
-        if abs(self.dY.value()) > self.H.value() / 2:
-            temp = self.dY.value() / abs(self.dY.value()) * self.H.value() / 2
+        if abs(self.dY.value()) > self.H.value() / 2 - 1:
+            temp = self.dY.value() / abs(self.dY.value()) * self.H.value() / 2 - 1
             self.dY.setValue(temp)
+        self.redraw(self.dX.value(), self.dY.value(), 0, 0)
 
     def on_start_clicked(self):
         if not self.btn_pause.isEnabled():
-            self.runge_kutta.set_initial_value([0, 0, 0, 0], 0)
+            self.runge_kutta.set_initial_value([self.dX.value(), self.dY.value(), 0, 0, 0, 0, 0, 0], 0)
         self.set_disabled_splin_boxes(True)
         self.timer.start()
         self.btn_start.setDisabled(True)
@@ -324,8 +365,10 @@ class Ui_Form(object):
             self.btn_start.setDisabled(False)
             self.btn_pause.setText("Пауза")
             self.set_disabled_splin_boxes(False)
-            # seriesYX.clear()
-            # seriesZXY.clear()
+            self.total_time = .0
+            self.trajectory_series.clear()
+            self.redraw(self.dX.value(), self.dY.value(), 0, 0)
+            print("______stop")
 
     def set_disabled_splin_boxes(self, value):
         self.k1.setDisabled(value)
@@ -342,47 +385,40 @@ class Ui_Form(object):
 
     # система уравнений
     def f(self, t, Y):
-        def f1x():
-            return self.k1.value() * (Y[0] - Y[2]) * (
-                    self.H.value() / np.sqrt(np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
 
-        def f2x():
-            return -1 * self.k2.value() * (Y[2] - Y[0] + self.W.value()) * (
-                    self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
-
-        def f3x():
-            return -1 * self.k3.value() * (Y[0] - Y[2]) * (1 - self.H.value() / np.sqrt(
-                np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
-
-        def f4x():
-            return -1 * self.k4.value() * (Y[2] - Y[0] + self.W.value()) * (1 - self.W.value() / np.sqrt(
-                np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
-
-        def fy1():
-            return -1 * self.k1.value() * (Y[3] - Y[1] + self.H.value()) * (self.H.value() / np.sqrt(
-                np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
-
-        def fy2():
-            return self.k2.value() * (Y[1] - Y[3]) * (
-                    self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
-
-        def fy3():
-            return -1 * self.k3.value() * (Y[1] - Y[3] + self.H.value()) * (1 - self.H.value() / np.sqrt(
-                np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
-
-        def fy4():
-            return -1 * self.k4.value() * (Y[1] - Y[3]) * (1 - self.W.value() / np.sqrt(
-                np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
-
-        def ftr(fx):
-            f = self.mu.value() * (self.m.value() + self.M.value()) * 9.81
-            max_value = abs(fx)
-            if f > max_value:
+        def ftr(f):
+            _f = self.mu.value() * (self.m.value() + self.M.value()) * 9.81
+            max_value = abs(f)
+            if _f > max_value:
                 return -max_value
-            return -f
+            return -_f
 
-        fx = f1x() + f2x() + f3x() + f4x()
-        fy = fy1() + fy2() + fy3() + fy4()
+        f1x = self.k1.value() * (Y[0] - Y[2]) * (
+                self.H.value() / np.sqrt(np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
+
+        f2x = -1 * self.k2.value() * (Y[2] - Y[0] + self.W.value()) * (
+                self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        f3x = -1 * self.k3.value() * (Y[0] - Y[2]) * (1 - self.H.value() / np.sqrt(
+            np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
+
+        f4x = -1 * self.k4.value() * (Y[2] - Y[0] + self.W.value()) * (1 - self.W.value() / np.sqrt(
+            np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        fy1 = -1 * self.k1.value() * (Y[3] - Y[1] + self.H.value()) * (self.H.value() / np.sqrt(
+            np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
+
+        fy2 = self.k2.value() * (Y[1] - Y[3]) * (
+                self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        fy3 = -1 * self.k3.value() * (Y[1] - Y[3] + self.H.value()) * (1 - self.H.value() / np.sqrt(
+            np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
+
+        fy4 = -1 * self.k4.value() * (Y[1] - Y[3]) * (1 - self.W.value() / np.sqrt(
+            np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+
+        fx = f1x + f2x + f3x + f4x
+        fy = fy1 + fy2 + fy3 + fy4
 
         vvx = .0
         vvy = .0
