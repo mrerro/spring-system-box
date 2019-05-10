@@ -232,18 +232,22 @@ class Ui_Form(object):
         self.chart.addSeries(self.s1_series)
         self.s1_series.attachAxis(self.axisX)
         self.s1_series.attachAxis(self.axisY)
+        self.s1_series.setColor(QtGui.QColor("blue"))
 
         self.chart.addSeries(self.s2_series)
         self.s2_series.attachAxis(self.axisX)
         self.s2_series.attachAxis(self.axisY)
+        self.s2_series.setColor(QtGui.QColor("blue"))
 
         self.chart.addSeries(self.s3_series)
         self.s3_series.attachAxis(self.axisX)
         self.s3_series.attachAxis(self.axisY)
+        self.s3_series.setColor(QtGui.QColor("blue"))
 
         self.chart.addSeries(self.s4_series)
         self.s4_series.attachAxis(self.axisX)
         self.s4_series.attachAxis(self.axisY)
+        self.s4_series.setColor(QtGui.QColor("blue"))
 
         self.chart.addSeries(self.trajectory_series)
         self.trajectory_series.attachAxis(self.axisX)
@@ -252,6 +256,7 @@ class Ui_Form(object):
         self.chart.addSeries(self.box_series)
         self.box_series.attachAxis(self.axisX)
         self.box_series.attachAxis(self.axisY)
+        self.box_series.setColor(QtGui.QColor("black"))
 
         self.chart.addSeries(self.mass_series)
         self.mass_series.attachAxis(self.axisX)
@@ -265,7 +270,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Груз на пружинках в коробке"))
         self.btn_start.setText(_translate("Form", "Старт"))
         self.btn_pause.setText(_translate("Form", "Пауза"))
         self.label_4.setText(_translate("Form", "k1="))
@@ -324,7 +329,7 @@ class Ui_Form(object):
     def on_timer_tick(self):
         self.runge_kutta.integrate(self.total_time)
         self.total_time += 0.1
-        self.redraw(self.runge_kutta.f[0], self.runge_kutta.y[1], self.runge_kutta.y[2], self.runge_kutta.y[3])
+        self.redraw(self.runge_kutta.y[0], self.runge_kutta.y[1], self.runge_kutta.y[2], self.runge_kutta.y[3])
 
     def on_W_editing_finished(self):
         self.chart.axisX().setRange(-self.W.value() - 25, self.W.value() + 25)
