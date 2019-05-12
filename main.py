@@ -85,7 +85,7 @@ class Ui_Form(object):
         self.k1.setSingleStep(0.5)
         self.k1.setProperty("value", 9.0)
         self.k1.setObjectName("k1")
-        self.chartView.setGeometry(QtCore.QRect(20, 10, 761, 491))
+        self.chartView.setGeometry(QtCore.QRect(145, 10, 510, 490))
         self.chartView.setFocusPolicy(QtCore.Qt.NoFocus)
         self.chartView.setObjectName("graphicsView")
         self.label_5.setGeometry(QtCore.QRect(155, 508, 31, 16))
@@ -124,10 +124,10 @@ class Ui_Form(object):
         self.label_14.setObjectName("label_14")
         self.m.setGeometry(QtCore.QRect(230, 538, 100, 22))
         self.m.setFocusPolicy(QtCore.Qt.WheelFocus)
-        self.m.setDecimals(0)
-        self.m.setMinimum(1.0)
+        self.m.setDecimals(3)
+        self.m.setMinimum(0.001)
         self.m.setMaximum(100000.0)
-        self.m.setProperty("value", 300.0)
+        self.m.setProperty("value", 0.3)
         self.m.setObjectName("m")
         self.label_15.setGeometry(QtCore.QRect(335, 572, 31, 16))
         self.label_15.setObjectName("label_15")
@@ -140,10 +140,10 @@ class Ui_Form(object):
         self.k4.setObjectName("k4")
         self.M.setGeometry(QtCore.QRect(230, 570, 100, 22))
         self.M.setFocusPolicy(QtCore.Qt.WheelFocus)
-        self.M.setDecimals(0)
-        self.M.setMinimum(1.0)
+        self.M.setDecimals(3)
+        self.M.setMinimum(0.001)
         self.M.setMaximum(100000.0)
-        self.M.setProperty("value", 800.0)
+        self.M.setProperty("value", 0.8)
         self.M.setObjectName("M")
         self.label_16.setGeometry(QtCore.QRect(515, 508, 31, 16))
         self.label_16.setText("")
@@ -230,8 +230,8 @@ class Ui_Form(object):
         self.btn_pause.released.connect(self.on_pause_clicked)
         self.btn_hide.released.connect(self.on_hide_clicked)
 
-        self.on_W_editing_finished()
-        self.on_H_editing_finished()
+        # self.on_W_editing_finished()
+        # self.on_H_editing_finished()
 
         self.chart.addSeries(self.s1_series)
         self.s1_series.attachAxis(self.axisX)
@@ -273,33 +273,37 @@ class Ui_Form(object):
         self.redraw(self.dX.value(), self.dY.value(), 0, 0)
 
     def retranslateUi(self, Form):
-        _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Груз на пружинках в коробке"))
-        self.btn_start.setText(_translate("Form", "Старт"))
-        self.btn_pause.setText(_translate("Form", "Пауза"))
-        self.label_4.setText(_translate("Form", "k1="))
-        self.label_5.setText(_translate("Form", "Н/м"))
-        self.label_6.setText(_translate("Form", "Н/м"))
-        self.label_7.setText(_translate("Form", "k2="))
-        self.label_8.setText(_translate("Form", "Н/м"))
-        self.label_9.setText(_translate("Form", "k3="))
-        self.label_10.setText(_translate("Form", "Н/м"))
-        self.label_11.setText(_translate("Form", "г"))
-        self.label_12.setText(_translate("Form", "m="))
-        self.label_13.setText(_translate("Form", "M="))
-        self.label_14.setText(_translate("Form", "k4="))
-        self.label_15.setText(_translate("Form", "г"))
-        self.label_17.setText(_translate("Form", "см"))
-        self.label_18.setText(_translate("Form", "dX="))
-        self.label_19.setText(_translate("Form", "dY="))
-        self.label_20.setText(_translate("Form", "mu="))
-        self.label_21.setText(_translate("Form", "см"))
-        self.label_22.setText(_translate("Form", "W="))
-        self.label_23.setText(_translate("Form", "см"))
-        self.label_24.setText(_translate("Form", "H="))
-        self.label_25.setText(_translate("Form", "см"))
+        Form.setWindowTitle("Груз на пружинках в коробке")
+        self.btn_start.setText("Старт")
+        self.btn_pause.setText("Пауза")
+        self.btn_hide.setText("Убрать коробку")
+        self.label_4.setText("k1=")
+        self.label_5.setText("Н/м")
+        self.label_6.setText("Н/м")
+        self.label_7.setText("k2=")
+        self.label_8.setText("Н/м")
+        self.label_9.setText("k3=")
+        self.label_10.setText("Н/м")
+        self.label_11.setText("кг")
+        self.label_12.setText("m=")
+        self.label_13.setText("M=")
+        self.label_14.setText("k4=")
+        self.label_15.setText("кг")
+        self.label_17.setText("см")
+        self.label_18.setText("dX=")
+        self.label_19.setText("dY=")
+        self.label_20.setText("mu=")
+        self.label_21.setText("см")
+        self.label_22.setText("W=")
+        self.label_23.setText("см")
+        self.label_24.setText("H=")
+        self.label_25.setText("см")
 
     def redraw(self, x, y, xb, yb):
+
+        self.chart.axisX().setRange(-self.W.value() + xb - 25, self.W.value() + xb + 25)
+        self.chart.axisY().setRange(-self.H.value() + yb - 25, self.H.value() + yb + 25)
+
         self.trajectory_series.append(xb, yb)
 
         self.mass_series.clear()
@@ -333,26 +337,25 @@ class Ui_Form(object):
     def on_timer_tick(self):
         self.total_time += self.timer.interval() / 1000
         self.runge_kutta.integrate(self.total_time)
-        self.total_time += 0.1
         self.redraw(self.runge_kutta.y[0], self.runge_kutta.y[1], self.runge_kutta.y[2], self.runge_kutta.y[3])
 
     def on_W_editing_finished(self):
-        self.chart.axisX().setRange(-self.W.value() - 25, self.W.value() + 25)
         self.on_dX_editing_finished()
 
     def on_H_editing_finished(self):
-        self.chart.axisY().setRange(-self.H.value() - 25, self.H.value() + 25)
         self.on_dY_editing_finished()
 
     def on_dX_editing_finished(self):
         if abs(self.dX.value()) > self.W.value() / 2 - 1:
-            temp = self.dX.value() / abs(self.dX.value()) * self.W.value() / 2 - 1
+            imaginary_sign = self.dX.value() / abs(self.dX.value())
+            temp = imaginary_sign * (self.W.value() / 2 - 1)
             self.dX.setValue(temp)
         self.redraw(self.dX.value(), self.dY.value(), 0, 0)
 
     def on_dY_editing_finished(self):
         if abs(self.dY.value()) > self.H.value() / 2 - 1:
-            temp = self.dY.value() / abs(self.dY.value()) * self.H.value() / 2 - 1
+            imaginary_sign = self.dY.value() / abs(self.dY.value())
+            temp = imaginary_sign * (self.H.value() / 2 - 1)
             self.dY.setValue(temp)
         self.redraw(self.dX.value(), self.dY.value(), 0, 0)
 
