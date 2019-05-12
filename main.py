@@ -61,7 +61,7 @@ class Ui_Form(object):
         self.s4_series = QtChart.QLineSeries()
 
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(10)
+        self.timer.setInterval(100)
         self.total_time = .0
 
         self.runge_kutta = ode(self.f)
@@ -331,6 +331,7 @@ class Ui_Form(object):
         self.s4_series.append(xb - w, yb)
 
     def on_timer_tick(self):
+        self.total_time += self.timer.interval() / 1000
         self.runge_kutta.integrate(self.total_time)
         self.total_time += 0.1
         self.redraw(self.runge_kutta.y[0], self.runge_kutta.y[1], self.runge_kutta.y[2], self.runge_kutta.y[3])
