@@ -42,6 +42,7 @@ class Ui_Form(object):
         self.label_4 = QtWidgets.QLabel(Form)
         self.btn_pause = QtWidgets.QPushButton(Form)
         self.btn_start = QtWidgets.QPushButton(Form)
+        self.btn_hide = QtWidgets.QPushButton(Form)
 
         self.chartView = QtChart.QChartView(Form)
         self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -73,6 +74,8 @@ class Ui_Form(object):
         self.btn_start.setObjectName("btn_start")
         self.btn_pause.setGeometry(QtCore.QRect(690, 538, 100, 24))
         self.btn_pause.setObjectName("btn_pause")
+        self.btn_hide.setGeometry(QtCore.QRect(690, 570, 100, 24))
+        self.btn_hide.setObjectName("btn_hide")
         self.label_4.setGeometry(QtCore.QRect(20, 508, 31, 16))
         self.label_4.setObjectName("label_4")
         self.k1.setGeometry(QtCore.QRect(50, 506, 100, 22))
@@ -225,6 +228,7 @@ class Ui_Form(object):
         self.dY.editingFinished.connect(self.on_dY_editing_finished)
         self.btn_start.released.connect(self.on_start_clicked)
         self.btn_pause.released.connect(self.on_pause_clicked)
+        self.btn_hide.released.connect(self.on_hide_clicked)
 
         self.on_W_editing_finished()
         self.on_H_editing_finished()
@@ -374,6 +378,14 @@ class Ui_Form(object):
             self.trajectory_series.clear()
             self.redraw(self.dX.value(), self.dY.value(), 0, 0)
             print("______stop")
+
+    def on_hide_clicked(self):
+        self.mass_series.clear()
+        self.box_series.clear()
+        self.s1_series.clear()
+        self.s2_series.clear()
+        self.s3_series.clear()
+        self.s4_series.clear()
 
     def set_disabled_splin_boxes(self, value):
         self.k1.setDisabled(value)
