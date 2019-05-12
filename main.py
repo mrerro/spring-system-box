@@ -337,7 +337,8 @@ class Ui_Form(object):
     def on_timer_tick(self):
         self.total_time += self.timer.interval() / 1000
         self.runge_kutta.integrate(self.total_time)
-        self.redraw(self.runge_kutta.y[0], self.runge_kutta.y[1], self.runge_kutta.y[2], self.runge_kutta.y[3])
+        self.redraw(self.runge_kutta.y[0] + self.runge_kutta.y[2], self.runge_kutta.y[1] + self.runge_kutta.y[3],
+                    self.runge_kutta.y[2], self.runge_kutta.y[3])
 
     def on_W_editing_finished(self):
         self.on_dX_editing_finished()
@@ -407,52 +408,48 @@ class Ui_Form(object):
     # система уравнений
     def f(self, t, Y):
 
-        def ftr(f):
-            _f = self.mu.value() * (self.m.value() + self.M.value()) * 9.81
-            max_value = abs(f)
-            if _f > max_value:
-                return -max_value
-            return -_f
+        def fdx(max):
+            fd = self.mu.value() * (self.M.value() + self.m.value()) * 9.81
+            if Y[6] != 0 and Y[7] != 0:
+                fd = fd * Y[6] / np.sqrt(Y[6] * Y[6] + Y[7] * Y[7])
+            else:
+                fd = 0
+            if Y[6] == 0:
+                if fd > max:
+                    return -max
+            return -fd
 
-        f1x = self.k1.value() * (Y[0] - Y[2]) * (
-                self.H.value() / np.sqrt(np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
+        def fdy(max):
+            fd = self.mu.value() * (self.M.value() + self.m.value()) * 9.81
+            if Y[6] != 0 and Y[7] != 0:
+                fd = fd * Y[7] / np.sqrt(Y[6] * Y[6] + Y[7] * Y[7])
+            else:
+                fd = 0
+            if Y[7] == 0:
+                if fd > max:
+                    return -max
+            return -fd
 
-        f2x = -1 * self.k2.value() * (Y[2] - Y[0] + self.W.value()) * (
-                self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+        x = Y[0]
+        y = Y[1]
 
-        f3x = -1 * self.k3.value() * (Y[0] - Y[2]) * (1 - self.H.value() / np.sqrt(
-            np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
+        f1x = +self.k1.value() * x
+        f2x = -self.k2.value() * x
+        f3x = +self.k3.value() * x
+        f4x = +self.k4.value() * x
 
-        f4x = -1 * self.k4.value() * (Y[2] - Y[0] + self.W.value()) * (1 - self.W.value() / np.sqrt(
-            np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+        f1y = -self.k1.value() * y
+        f2y = +self.k2.value() * y
+        f3y = +self.k3.value() * y
+        f4y = +self.k4.value() * y
 
-        fy1 = -1 * self.k1.value() * (Y[3] - Y[1] + self.H.value()) * (self.H.value() / np.sqrt(
-            np.power(Y[0] - Y[2], 2) + np.power(Y[3] + self.H.value() - Y[1], 2)) - 1)
+        fy6 = (+f1x + f2x + f3x + f4x + fdx(f1x + f2x + f3x + f4x)) / self.M.value()  # VX' = sum FMx
+        fy7 = (+f1y + f2y + f3y + f4y + fdy(f1y + f2y + f3y + f4y)) / self.M.value()  # VY' = sum FMy
 
-        fy2 = self.k2.value() * (Y[1] - Y[3]) * (
-                self.W.value() / np.sqrt(np.power(Y[2] - Y[0] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
+        fy4 = (-f1x - f2x - f3x - f4x - self.m.value() * fy6) / self.m.value()  # Vx' = sum Fmx
+        fy5 = (-f1y - f2y - f3y - f4y - self.m.value() * fy7) / self.m.value()  # Vy' = sum Fmy
 
-        fy3 = -1 * self.k3.value() * (Y[1] - Y[3] + self.H.value()) * (1 - self.H.value() / np.sqrt(
-            np.power(Y[0] - Y[2], 2) + np.power(Y[1] + self.H.value() - Y[3], 2)))
-
-        fy4 = -1 * self.k4.value() * (Y[1] - Y[3]) * (1 - self.W.value() / np.sqrt(
-            np.power(Y[0] - Y[2] + self.W.value(), 2) + np.power(Y[1] - Y[3], 2)))
-
-        fx = f1x + f2x + f3x + f4x
-        fy = fy1 + fy2 + fy3 + fy4
-
-        vvx = .0
-        vvy = .0
-
-        if Y[6] != 0 or Y[7] != 0:
-            vvx = Y[6] / np.sqrt(Y[6] * Y[6] + Y[7] * Y[7])
-            vvy = Y[7] / np.sqrt(Y[6] * Y[6] + Y[7] * Y[7])
-
-        ftr_x = ftr(fx) * vvx
-        ftr_y = ftr(fy) * vvy
-
-        return [Y[4], Y[5], Y[6], Y[7], fx / self.m.value(), fx / self.m.value(), (-fx + ftr_x) / self.M.value(),
-                (-fy + ftr_y) / self.M.value()]
+        return [Y[4], Y[5], Y[6], Y[7], fy4, fy5, fy6, fy7]
 
 
 if __name__ == "__main__":
