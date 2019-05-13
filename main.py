@@ -231,8 +231,8 @@ class Ui_Form(object):
         self.btn_pause.released.connect(self.on_pause_clicked)
         self.btn_hide.released.connect(self.on_hide_clicked)
 
-        # self.on_W_editing_finished()
-        # self.on_H_editing_finished()
+        self.on_W_editing_finished()
+        self.on_H_editing_finished()
 
         self.chart.addSeries(self.s1_series)
         self.s1_series.attachAxis(self.axisX)
@@ -271,8 +271,6 @@ class Ui_Form(object):
 
         self.btn_pause.setDisabled(True)
 
-        self.redraw(self.dX.value(), self.dY.value(), 0, 0)
-
     def retranslateUi(self, Form):
         Form.setWindowTitle("Груз на пружинках в коробке")
         self.btn_start.setText("Старт")
@@ -301,9 +299,6 @@ class Ui_Form(object):
         self.label_25.setText("см")
 
     def redraw(self, x, y, xb, yb):
-
-        self.chart.axisX().setRange(-self.W.value() + xb - 25, self.W.value() + xb + 25)
-        self.chart.axisY().setRange(-self.H.value() + yb - 25, self.H.value() + yb + 25)
 
         self.trajectory_series.append(xb, yb)
 
@@ -342,9 +337,11 @@ class Ui_Form(object):
                     self.runge_kutta.y[2], self.runge_kutta.y[3])
 
     def on_W_editing_finished(self):
+        self.chart.axisX().setRange(-self.W.value() - 25, self.W.value() + 25)
         self.on_dX_editing_finished()
 
     def on_H_editing_finished(self):
+        self.chart.axisY().setRange(-self.H.value() - 25, self.H.value() + 25)
         self.on_dY_editing_finished()
 
     def on_dX_editing_finished(self):
