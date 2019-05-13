@@ -413,7 +413,7 @@ class Ui_Form(object):
             else:
                 fd = 0
             if Y[6] == 0:
-                if fd > max:
+                if abs(fd) > abs(max):
                     return -max
             return -fd
 
@@ -424,22 +424,29 @@ class Ui_Form(object):
             else:
                 fd = 0
             if Y[7] == 0:
-                if fd > max:
+                if abs(fd) > abs(max):
                     return -max
             return -fd
+
+        if abs(Y[0]) > (self.W.value() / 2):
+            imaginary_sign = Y[0] / abs(Y[0])
+            Y[0] = imaginary_sign * self.W.value() / 2
+        if abs(Y[1]) > (self.H.value() / 2):
+            imaginary_sign = Y[1] / abs(Y[1])
+            Y[1] = imaginary_sign * self.H.value() / 2
 
         x = Y[0]
         y = Y[1]
 
-        f1x = +self.k1.value() * x
-        f2x = -self.k2.value() * x
-        f3x = +self.k3.value() * x
-        f4x = +self.k4.value() * x
+        f1x = self.k1.value() * x
+        f2x = self.k2.value() * x
+        f3x = self.k3.value() * x
+        f4x = self.k4.value() * x
 
-        f1y = -self.k1.value() * y
-        f2y = +self.k2.value() * y
-        f3y = +self.k3.value() * y
-        f4y = +self.k4.value() * y
+        f1y = self.k1.value() * y
+        f2y = self.k2.value() * y
+        f3y = self.k3.value() * y
+        f4y = self.k4.value() * y
 
         fy6 = (+f1x + f2x + f3x + f4x + fdx(f1x + f2x + f3x + f4x)) / self.M.value()  # VX' = sum FMx
         fy7 = (+f1y + f2y + f3y + f4y + fdy(f1y + f2y + f3y + f4y)) / self.M.value()  # VY' = sum FMy
